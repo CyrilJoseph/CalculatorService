@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -21,6 +21,10 @@ namespace CalculatorService.Controllers
             {
                 return Ok(num1 + num2);
             }
+            catch (OverflowException)
+            {
+                return StatusCode(500, "Arithmetic overflow occurred");
+            }
             catch
             {
                 return StatusCode(500, "An error occurred");
@@ -33,7 +37,18 @@ namespace CalculatorService.Controllers
             if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
             if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
 
-            return Ok(num1 - num2);
+            try
+            {
+                return Ok(num1 - num2);
+            }
+            catch (OverflowException)
+            {
+                return StatusCode(500, "Arithmetic overflow occurred");
+            }
+            catch
+            {
+                return StatusCode(500, "An error occurred");
+            }
         }
 
         [HttpGet("multiply")]
@@ -42,8 +57,19 @@ namespace CalculatorService.Controllers
             if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
             if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
 
-            long result = (long)num1 * (long)num2;
-            return Ok(result);
+            try
+            {
+                long result = checked((long)num1 * (long)num2);
+                return Ok(result);
+            }
+            catch (OverflowException)
+            {
+                return StatusCode(500, "Arithmetic overflow occurred");
+            }
+            catch
+            {
+                return StatusCode(500, "An error occurred");
+            }
         }
 
         [HttpGet("divide")]
@@ -51,17 +77,42 @@ namespace CalculatorService.Controllers
         {
             if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
             if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
-            return Ok(num1 / num2);
+
+            try
+            {
+                return Ok(num1 / num2);
+            }
+            catch (DivideByZeroException)
+            {
+                return BadRequest("Cannot divide by zero");
+            }
+            catch
+            {
+                return StatusCode(500, "An error occurred");
+            }
         }
 
         [HttpGet("factorial")]
         public IActionResult Factorial(int n)
         {
+            if (n < 0)
+                return BadRequest("Input must be a non-negative integer");
+
             if (n <= 1)
                 return Ok(1);
-            
-            return Ok(n * Factorial(n - 1).Value);
+
+            try
+            {
+                return Ok(checked(n * Factorial(n - 1).Value));
+            }
+            catch (OverflowException)
+            {
+                return StatusCode(500, "Arithmetic overflow occurred");
+            }
+            catch
+            {
+                return StatusCode(500, "An error occurred");
+            }
         }
     }
 }
