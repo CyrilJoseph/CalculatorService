@@ -14,23 +14,26 @@ namespace CalculatorService.Controllers
     {
         private bool IsNumeric(string inp)
         {
-            return Regex.IsMatch(inp, "^\\d+$");
+            return double.TryParse(inp, out _);
         }
 
         [HttpGet("add")]
         public IActionResult Add(string num1, string num2)
         {
             if (!IsNumeric(num1) || !IsNumeric(num2)) return BadRequest("Invalid input. Only numeric values are allowed.");
+            if (num1.Length > 10 || num2.Length > 10) return BadRequest("Input too large. Please provide smaller values.");
 
             try
             {
-                int n1 = int.Parse(num1);
-                int n2 = int.Parse(num2);
-
-                checked
+                if (int.TryParse(num1, out int n1) && int.TryParse(num2, out int n2))
                 {
-                    return Ok(n1 + n2);
+                    checked
+                    {
+                        return Ok(n1 + n2);
+                    }
                 }
+
+                return BadRequest("Invalid numeric format.");
             }
             catch (OverflowException)
             {
@@ -42,16 +45,19 @@ namespace CalculatorService.Controllers
         public IActionResult Sub(string num1, string num2)
         {
             if (!IsNumeric(num1) || !IsNumeric(num2)) return BadRequest("Invalid input. Only numeric values are allowed.");
+            if (num1.Length > 10 || num2.Length > 10) return BadRequest("Input too large. Please provide smaller values.");
 
             try
             {
-                int n1 = int.Parse(num1);
-                int n2 = int.Parse(num2);
-
-                checked
+                if (int.TryParse(num1, out int n1) && int.TryParse(num2, out int n2))
                 {
-                    return Ok(n1 - n2);
+                    checked
+                    {
+                        return Ok(n1 - n2);
+                    }
                 }
+
+                return BadRequest("Invalid numeric format.");
             }
             catch (OverflowException)
             {
@@ -63,17 +69,20 @@ namespace CalculatorService.Controllers
         public IActionResult Multiply(string num1, string num2)
         {
             if (!IsNumeric(num1) || !IsNumeric(num2)) return BadRequest("Invalid input. Only numeric values are allowed.");
+            if (num1.Length > 10 || num2.Length > 10) return BadRequest("Input too large. Please provide smaller values.");
 
             try
             {
-                int n1 = int.Parse(num1);
-                int n2 = int.Parse(num2);
-
-                checked
+                if (int.TryParse(num1, out int n1) && int.TryParse(num2, out int n2))
                 {
-                    long result = n1 * n2;
-                    return Ok(result);
+                    checked
+                    {
+                        long result = n1 * n2;
+                        return Ok(result);
+                    }
                 }
+
+                return BadRequest("Invalid numeric format.");
             }
             catch (OverflowException)
             {
@@ -85,14 +94,17 @@ namespace CalculatorService.Controllers
         public IActionResult Divide(string num1, string num2)
         {
             if (!IsNumeric(num1) || !IsNumeric(num2)) return BadRequest("Invalid input. Only numeric values are allowed.");
+            if (num1.Length > 10 || num2.Length > 10) return BadRequest("Input too large. Please provide smaller values.");
 
             try
             {
-                int n1 = int.Parse(num1);
-                int n2 = int.Parse(num2);
-                if (n2 == 0) return BadRequest("Division by zero is not allowed.");
+                if (int.TryParse(num1, out int n1) && int.TryParse(num2, out int n2))
+                {
+                    if (n2 == 0) return BadRequest("Division by zero is not allowed.");
+                    return Ok(n1 / n2);
+                }
 
-                return Ok(n1 / n2);
+                return BadRequest("Invalid numeric format.");
             }
             catch (Exception)
             {
@@ -107,19 +119,18 @@ namespace CalculatorService.Controllers
 
             try
             {
-                int num = int.Parse(n);
-                if (num > 20)
+                if (int.TryParse(n, out int num) && num <= 15)
                 {
-                    return BadRequest("Input too large. Please try a smaller number.");
+                    long result = 1;
+                    for (int i = 1; i <= num; i++)
+                    {
+                        result *= i;
+                    }
+
+                    return Ok(result);
                 }
 
-                long result = 1;
-                for (int i = 1; i <= num; i++)
-                {
-                    result *= i;
-                }
-
-                return Ok(result);
+                return BadRequest("Input too large or invalid.");
             }
             catch (Exception)
             {

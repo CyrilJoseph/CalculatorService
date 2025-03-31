@@ -23,10 +23,8 @@ namespace CalculatorService
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
@@ -34,7 +32,6 @@ namespace CalculatorService
             });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -45,8 +42,6 @@ namespace CalculatorService
             }
             else
             {
-                app.UseHsts();
-                // Disable Swagger in production environments
                 app.Use(async (context, next) =>
                 {
                     if (context.Request.Path.StartsWithSegments("/swagger"))
