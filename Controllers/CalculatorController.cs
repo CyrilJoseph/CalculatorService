@@ -24,6 +24,9 @@ namespace CalculatorService.Controllers
 
             try
             {
+                if (num1.Length > 10 || num2.Length > 10)
+                    throw new OverflowException("Possible overflow due to input size");
+                
                 int n1 = int.Parse(num1);
                 int n2 = int.Parse(num2);
 
@@ -45,6 +48,9 @@ namespace CalculatorService.Controllers
 
             try
             {
+                if (num1.Length > 10 || num2.Length > 10)
+                    throw new OverflowException("Possible overflow due to input size");
+                
                 int n1 = int.Parse(num1);
                 int n2 = int.Parse(num2);
 
@@ -66,12 +72,15 @@ namespace CalculatorService.Controllers
 
             try
             {
+                if (num1.Length > 10 || num2.Length > 10)
+                    throw new OverflowException("Possible overflow due to input size");
+                
                 int n1 = int.Parse(num1);
                 int n2 = int.Parse(num2);
 
                 checked
                 {
-                    long result = n1 * n2;
+                    long result = (long) n1 * n2;
                     return Ok(result);
                 }
             }
@@ -88,6 +97,9 @@ namespace CalculatorService.Controllers
 
             try
             {
+                if (num1.Length > 10 || num2.Length > 10)
+                    throw new OverflowException("Possible overflow due to input size");
+                
                 int n1 = int.Parse(num1);
                 int n2 = int.Parse(num2);
                 if (n2 == 0) return BadRequest("Division by zero is not allowed.");
@@ -104,14 +116,11 @@ namespace CalculatorService.Controllers
         public IActionResult Factorial(string n)
         {
             if (!IsNumeric(n) || long.Parse(n) < 0) return BadRequest("Invalid input. Only positive numeric values are allowed.");
+            if (n.Length > 2) return BadRequest("Input too large. Please try a smaller number.");
 
             try
             {
                 int num = int.Parse(n);
-                if (num > 20)
-                {
-                    return BadRequest("Input too large. Please try a smaller number.");
-                }
 
                 long result = 1;
                 for (int i = 1; i <= num; i++)
