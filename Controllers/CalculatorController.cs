@@ -18,6 +18,7 @@ namespace CalculatorService.Controllers
         }
 
         [HttpGet("add")]
+        [ValidateAntiForgeryToken]
         public IActionResult Add(string num1, string num2)
         {
             if (!IsNumeric(num1) || !IsNumeric(num2)) return BadRequest("Invalid input. Only numeric values are allowed.");
@@ -39,6 +40,7 @@ namespace CalculatorService.Controllers
         }
 
         [HttpGet("sub")]
+        [ValidateAntiForgeryToken]
         public IActionResult Sub(string num1, string num2)
         {
             if (!IsNumeric(num1) || !IsNumeric(num2)) return BadRequest("Invalid input. Only numeric values are allowed.");
@@ -60,6 +62,7 @@ namespace CalculatorService.Controllers
         }
 
         [HttpGet("multiply")]
+        [ValidateAntiForgeryToken]
         public IActionResult Multiply(string num1, string num2)
         {
             if (!IsNumeric(num1) || !IsNumeric(num2)) return BadRequest("Invalid input. Only numeric values are allowed.");
@@ -82,6 +85,7 @@ namespace CalculatorService.Controllers
         }
 
         [HttpGet("divide")]
+        [ValidateAntiForgeryToken]
         public IActionResult Divide(string num1, string num2)
         {
             if (!IsNumeric(num1) || !IsNumeric(num2)) return BadRequest("Invalid input. Only numeric values are allowed.");
@@ -101,6 +105,7 @@ namespace CalculatorService.Controllers
         }
 
         [HttpGet("factorial")]
+        [ValidateAntiForgeryToken]
         public IActionResult Factorial(string n)
         {
             if (!IsNumeric(n) || long.Parse(n) < 0) return BadRequest("Invalid input. Only positive numeric values are allowed.");
