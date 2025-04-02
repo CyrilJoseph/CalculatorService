@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,68 +12,116 @@ namespace CalculatorService.Controllers
     [ApiController]
     public class CalculatorController : ControllerBase
     {
+        private const int MaxInput = 1000000; // Define a maximum allowed input number
+
         [HttpGet("add")]
         public IActionResult Add(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required");
-            if (num2 == 0) return BadRequest("Num2 is required");
+            if (num1 <= 0 || num1 > MaxInput) return BadRequest("Num1 is required and must be between 1 and 1000000.");
+            if (num2 <= 0 || num2 > MaxInput) return BadRequest("Num2 is required and must be between 1 and 1000000.");
 
-            // Vulnerability: No protection against extremely large numbers that could cause
-            // integer overflow or excessive resource consumption
             try
             {
-                return Ok(num1 + num2);
+                checked // Prevent integer overflow
+                {
+                    return Ok(num1 + num2);
+                }
             }
-            catch
+            catch (OverflowException)
             {
-                // Vulnerability: Generic error handling that might expose stack traces
-                return StatusCode(500, "An error occurred");
+                return BadRequest("Inputs are too large.");
+            }
+            catch (Exception ex)
+            {
+                // Specific error handling
+                return StatusCode(500, $"Error occurred: {ex.Message}");
             }
         }
 
         [HttpGet("sub")]
         public IActionResult Sub(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (num1 <= 0 || num1 > MaxInput) return BadRequest("Num1 is required and must be between 1 and 1000000.");
+            if (num2 <= 0 || num2 > MaxInput) return BadRequest("Num2 is required and must be between 1 and 1000000.");
 
-            // Vulnerability: No input validation for minimum/maximum values
-            return Ok(num1 - num2);
+            try
+            {
+                return Ok(num1 - num2);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error occurred: {ex.Message}");
+            }
         }
 
         [HttpGet("multiply")]
         public IActionResult Multiply(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (num1 <= 0 || num1 > MaxInput) return BadRequest("Num1 is required and must be between 1 and 1000000.");
+            if (num2 <= 0 || num2 > MaxInput) return BadRequest("Num2 is required and must be between 1 and 1000000.");
 
-            // Vulnerability: No rate limiting - this expensive operation could be called repeatedly
-            // Also no protection against integer overflow
-            long result = (long)num1 * (long)num2;
-            return Ok(result);
+            try
+            {
+                checked // Prevent integer overflow
+                {
+                    long result = (long)num1 * (long)num2;
+                    return Ok(result);
+                }
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Result is too large.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error occurred: {ex.Message}");
+            }
         }
 
         [HttpGet("divide")]
         public IActionResult Divide(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (num1 <= 0 || num1 > MaxInput) return BadRequest("Num1 is required and must be between 1 and 1000000.");
+            if (num2 <= 0 || num2 > MaxInput) return BadRequest("Num2 is required and must be between 1 and 1000000.");
 
-            // Vulnerability: No timeout protection for the operation
-            // Also division by zero check is not comprehensive (what if num2 becomes zero after casting?)
-            return Ok(num1 / num2);
+            try
+            {
+                return Ok(num1 / num2);
+            }
+            catch (DivideByZeroException)
+            {
+                return BadRequest("Cannot divide by zero.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error occurred: {ex.Message}");
+            }
         }
 
-        // New vulnerable endpoint demonstrating Unrestricted Resource Consumption
         [HttpGet("factorial")]
         public IActionResult Factorial(int n)
         {
-            // Vulnerability: No maximum value check - this recursive implementation
-            // could cause stack overflow or excessive CPU usage with large inputs
-            if (n <= 1)
-                return Ok(1);
-            
-            return Ok(n * Factorial(n - 1).Value);
+            if (n <= 0 || n > 20) return BadRequest("n must be between 1 and 20 to prevent stack overflow.");
+
+            try
+            {
+                return Ok(CalculateFactorial(n));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error occurred: {ex.Message}");
+            }
+        }
+
+        private long CalculateFactorial(int n)
+        {
+            long result = 1;
+
+            for (int i = 2; i <= n; i++)
+            {
+                result *= i;
+            }
+            return result;
         }
     }
 }
