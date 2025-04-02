@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -11,57 +11,135 @@ namespace CalculatorService.Controllers
     [ApiController]
     public class CalculatorController : ControllerBase
     {
-        [HttpGet("add")]
-        public IActionResult Add(int num1, int num2)
+        private IActionResult ValidateInput(string paramName, string value)
         {
-            if (num1 == 0) return BadRequest("Num1 is required");
-            if (num2 == 0) return BadRequest("Num2 is required");
-            
+            int parsedValue;
+
+            if (!int.TryParse(value, out parsedValue))
+            {
+                return BadRequest(paramName + " must be a valid integer.");
+            }
+
+            return null;
+        }
+
+        [HttpGet("add")]
+        public IActionResult Add(string num1, string num2)
+        {
+            var validationResult1 = ValidateInput(nameof(num1), num1);
+            var validationResult2 = ValidateInput(nameof(num2), num2);
+
+            if (validationResult1 != null) return validationResult1;
+            if (validationResult2 != null) return validationResult2;
+
             try
             {
-                return Ok(num1 + num2);
+                int operand1 = int.Parse(num1);
+                int operand2 = int.Parse(num2);
+
+                return Ok(operand1 + operand2);
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred");
+                return StatusCode(500, "An error occurred: " + ex.Message);
             }
         }
 
         [HttpGet("sub")]
-        public IActionResult Sub(int num1, int num2)
+        public IActionResult Sub(string num1, string num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
-            return Ok(num1 - num2);
+            var validationResult1 = ValidateInput(nameof(num1), num1);
+            var validationResult2 = ValidateInput(nameof(num2), num2);
+
+            if (validationResult1 != null) return validationResult1;
+            if (validationResult2 != null) return validationResult2;
+
+            try
+            {
+                int operand1 = int.Parse(num1);
+                int operand2 = int.Parse(num2);
+
+                return Ok(operand1 - operand2);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred: " + ex.Message);
+            }
         }
 
         [HttpGet("multiply")]
-        public IActionResult Multiply(int num1, int num2)
+        public IActionResult Multiply(string num1, string num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
-            long result = (long)num1 * (long)num2;
-            return Ok(result);
+            var validationResult1 = ValidateInput(nameof(num1), num1);
+            var validationResult2 = ValidateInput(nameof(num2), num2);
+
+            if (validationResult1 != null) return validationResult1;
+            if (validationResult2 != null) return validationResult2;
+
+            try
+            {
+                long operand1 = long.Parse(num1);
+                long operand2 = long.Parse(num2);
+
+                long result = operand1 * operand2;
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred: " + ex.Message);
+            }
         }
 
         [HttpGet("divide")]
-        public IActionResult Divide(int num1, int num2)
+        public IActionResult Divide(string num1, string num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            var validationResult1 = ValidateInput(nameof(num1), num1);
+            var validationResult2 = ValidateInput(nameof(num2), num2);
 
-            return Ok(num1 / num2);
+            if (validationResult1 != null) return validationResult1;
+            if (validationResult2 != null) return validationResult2;
+
+            try
+            {
+                int operand1 = int.Parse(num1);
+                int operand2 = int.Parse(num2);
+
+                if (operand2 == 0)
+                {
+                    return BadRequest("Division by zero is not allowed.");
+                }
+
+                return Ok(operand1 / operand2);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred: " + ex.Message);
+            }
         }
-        
+
         [HttpGet("factorial")]
-        public IActionResult Factorial(int n)
+        public IActionResult Factorial(string n)
         {
-            if (n <= 1)
-                return Ok(1);
-            
-            return Ok(n * Factorial(n - 1).Value);
+            var validationResult = ValidateInput(nameof(n), n);
+
+            if (validationResult != null) return validationResult;
+
+            try
+            {
+                int number = int.Parse(n);
+
+                long result = 1;
+                for (int i = 2; i <= number; i++)
+                {
+                    result *= i;
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred: " + ex.Message);
+            }
         }
     }
 }
