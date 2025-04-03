@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+
+ï»¿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -14,8 +15,8 @@ namespace CalculatorService.Controllers
         [HttpGet("add")]
         public IActionResult Add(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required");
-            if (num2 == 0) return BadRequest("Num2 is required");
+            if (!ModelState.IsValid) return BadRequest("Invalid input");
+            if (num1 == 0 || num2 == 0) return BadRequest("Inputs must be non-zero");
             
             try
             {
@@ -23,15 +24,15 @@ namespace CalculatorService.Controllers
             }
             catch
             {
-                return StatusCode(500, "An error occurred");
+                return StatusCode(500, "Server error occurred");
             }
         }
 
         [HttpGet("sub")]
         public IActionResult Sub(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (!ModelState.IsValid) return BadRequest("Invalid input");
+            if (num1 == 0 || num2 == 0) return BadRequest("Inputs must be non-zero");
             
             return Ok(num1 - num2);
         }
@@ -39,8 +40,8 @@ namespace CalculatorService.Controllers
         [HttpGet("multiply")]
         public IActionResult Multiply(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (!ModelState.IsValid) return BadRequest("Invalid input");
+            if (num1 == 0 || num2 == 0) return BadRequest("Inputs must be non-zero");
             
             long result = (long)num1 * (long)num2;
             return Ok(result);
@@ -49,19 +50,44 @@ namespace CalculatorService.Controllers
         [HttpGet("divide")]
         public IActionResult Divide(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (!ModelState.IsValid) return BadRequest("Invalid input");
+            if (num2 == 0) return BadRequest("Cannot divide by zero");
 
-            return Ok(num1 / num2);
+            try
+            {
+                return Ok(num1 / num2);
+            }
+            catch (DivideByZeroException)
+            {
+                return BadRequest("Cannot divide by zero");
+            }
+            catch
+            {
+                return StatusCode(500, "Server error occurred");
+            }
         }
         
         [HttpGet("factorial")]
         public IActionResult Factorial(int n)
         {
-            if (n <= 1)
-                return Ok(1);
+            if (!ModelState.IsValid) return BadRequest("Invalid input");
+            if (n < 0) return BadRequest("Input must be non-negative");
 
-            return Ok(n * Factorial(n - 1).Value);
+            try
+            {
+                // Base case for recursion
+                return Ok(FactorialRecursive(n));
+            }
+            catch
+            {
+                return StatusCode(500, "Server error occurred");
+            }
+        }
+        
+        private long FactorialRecursive(int n)
+        {
+            if (n <= 1) return 1;
+            return n * FactorialRecursive(n - 1);
         }
     }
 }
