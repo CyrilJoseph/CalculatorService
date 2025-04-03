@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -12,56 +13,106 @@ namespace CalculatorService.Controllers
     public class CalculatorController : ControllerBase
     {
         [HttpGet("add")]
-        public IActionResult Add(int num1, int num2)
+        public IActionResult Add(string num1, string num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required");
-            if (num2 == 0) return BadRequest("Num2 is required");
-            
+            if (!int.TryParse(num1, out int parsedNum1) || !int.TryParse(num2, out int parsedNum2))
+                return BadRequest("Inputs must be valid integers");
+
             try
             {
-                return Ok(num1 + num2);
+                return Ok(parsedNum1 + parsedNum2);
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Overflow occurred in calculation");
             }
             catch
             {
-                return StatusCode(500, "An error occurred");
+                return StatusCode(500, "An unexpected error occurred");
             }
         }
 
         [HttpGet("sub")]
-        public IActionResult Sub(int num1, int num2)
+        public IActionResult Sub(string num1, string num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
-            return Ok(num1 - num2);
+            if (!int.TryParse(num1, out int parsedNum1) || !int.TryParse(num2, out int parsedNum2))
+                return BadRequest("Inputs must be valid integers");
+
+            try
+            {
+                return Ok(parsedNum1 - parsedNum2);
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Overflow occurred in calculation");
+            }
+            catch
+            {
+                return StatusCode(500, "An unexpected error occurred");
+            }
         }
 
         [HttpGet("multiply")]
-        public IActionResult Multiply(int num1, int num2)
+        public IActionResult Multiply(string num1, string num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (!int.TryParse(num1, out int parsedNum1) || !int.TryParse(num2, out int parsedNum2))
+                return BadRequest("Inputs must be valid integers");  
             
-            long result = (long)num1 * (long)num2;
-            return Ok(result);
+            try
+            {
+                long result = (long)parsedNum1 * (long)parsedNum2;
+                return Ok(result);
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Overflow occurred in calculation");
+            }
+            catch
+            {
+                return StatusCode(500, "An unexpected error occurred");
+            }
         }
 
         [HttpGet("divide")]
-        public IActionResult Divide(int num1, int num2)
+        public IActionResult Divide(string num1, string num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (!int.TryParse(num1, out int parsedNum1) || !int.TryParse(num2, out int parsedNum2) || parsedNum2 == 0)
+                return BadRequest("Inputs must be valid integers and divisor cannot be zero");
 
-            return Ok(num1 / num2);
+            try
+            {
+                return Ok((double)parsedNum1 / parsedNum2);
+            }
+            catch
+            {
+                return StatusCode(500, "An unexpected error occurred");
+            }
         }
-        
-        [HttpGet("factorial")]
-        public IActionResult Factorial(int n)
-        {
-            if (n <= 1)
-                return Ok(1);
 
-            return Ok(n * Factorial(n - 1).Value);
+        [HttpGet("factorial")]
+        public IActionResult Factorial(string n)
+        {
+            if (!int.TryParse(n, out int parsedN) || parsedN < 0 || parsedN > 12)  // Restrict to avoid overflow in recursion
+                return BadRequest("Input must be a valid non-negative integer less than or equal to 12");
+
+            try
+            {
+                int Factorial(int number)
+                {
+                    if (number <= 1) return 1;
+                    return number * Factorial(number - 1);
+                }
+
+                return Ok(Factorial(parsedN));
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Overflow occurred in calculation");
+            }
+            catch
+            {
+                return StatusCode(500, "An unexpected error occurred");
+            }
         }
     }
 }
