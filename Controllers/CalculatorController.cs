@@ -1,67 +1,107 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
+using Microsoft.AspNetCore.Mvc;
+using System.Numerics; // Added for advanced mathematical computations.
 namespace CalculatorService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class CalculatorController : ControllerBase
     {
+        private const int MaxInputValue = 100000; // Input validation limit.
+
         [HttpGet("add")]
         public IActionResult Add(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required");
-            if (num2 == 0) return BadRequest("Num2 is required");
-            
+            if (!ValidateInput(num1) || !ValidateInput(num2))
+            {
+                return BadRequest("Inputs must be between -100000 and 100000.");
+            }
+
             try
             {
                 return Ok(num1 + num2);
             }
-            catch
+            catch (Exception ex)
             {
-                return StatusCode(500, "An error occurred");
+                return StatusCode(500, $"An error occurred: {ex.Message}");
             }
         }
 
         [HttpGet("sub")]
         public IActionResult Sub(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
+            if (!ValidateInput(num1) || !ValidateInput(num2))
+            {
+                return BadRequest("Inputs must be between -100000 and 100000.");
+            }
+
             return Ok(num1 - num2);
         }
 
         [HttpGet("multiply")]
         public IActionResult Multiply(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
-            long result = (long)num1 * (long)num2;
-            return Ok(result);
+            if (!ValidateInput(num1) || !ValidateInput(num2))
+            {
+                return BadRequest("Inputs must be between -100000 and 100000.");
+            }
+
+            try
+            {
+                BigInteger result = (BigInteger)num1 * num2;
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
 
         [HttpGet("divide")]
         public IActionResult Divide(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (num2 == 0) return BadRequest("Division by zero is not allowed.");
+            if (!ValidateInput(num1) || !ValidateInput(num2))
+            {
+                return BadRequest("Inputs must be between -100000 and 100000.");
+            }
 
-            return Ok(num1 / num2);
+            try
+            {
+                return Ok(num1 / num2);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
         }
-        
+
         [HttpGet("factorial")]
         public IActionResult Factorial(int n)
         {
-            if (n <= 1)
-                return Ok(1);
+            if (n < 0 || n > 50)
+            {
+                return BadRequest("Input must be a non-negative integer less than or equal to 50.");
+            }
 
-            return Ok(n * Factorial(n - 1).Value);
+            try
+            {
+                BigInteger result = 1;
+                for (int i = 1; i <= n; i++)
+                {
+                    result *= i;
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred: {ex.Message}");
+            }
+        }
+
+        private bool ValidateInput(int input)
+        {
+            return input >= -MaxInputValue && input <= MaxInputValue;
         }
     }
 }
