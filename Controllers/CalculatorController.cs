@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculatorService.Controllers
 {
@@ -11,57 +9,87 @@ namespace CalculatorService.Controllers
     [ApiController]
     public class CalculatorController : ControllerBase
     {
+        private const int FactorialMaxInput = 100;
+
         [HttpGet("add")]
         public IActionResult Add(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required");
-            if (num2 == 0) return BadRequest("Num2 is required");
-            
             try
             {
-                return Ok(num1 + num2);
+                return Ok(checked(num1 + num2));
             }
-            catch
+            catch (OverflowException)
             {
-                return StatusCode(500, "An error occurred");
+                return BadRequest("Overflow occurred while calculating the sum.");
             }
         }
 
         [HttpGet("sub")]
         public IActionResult Sub(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
-            return Ok(num1 - num2);
+            try
+            {
+                return Ok(checked(num1 - num2));
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Overflow occurred while calculating the subtraction.");
+            }
         }
 
         [HttpGet("multiply")]
         public IActionResult Multiply(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
-            long result = (long)num1 * (long)num2;
-            return Ok(result);
+            try
+            {
+                long result = checked((long)num1 * (long)num2);
+                return Ok(result);
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Overflow occurred while calculating the multiplication.");
+            }
         }
 
         [HttpGet("divide")]
         public IActionResult Divide(int num1, int num2)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (num2 == 0) return BadRequest("Division by zero is not allowed.");
 
-            return Ok(num1 / num2);
+            try
+            {
+                return Ok(num1 / num2);
+            }
+            catch (DivideByZeroException)
+            {
+                return BadRequest("Division by zero error occurred.");
+            }
         }
-        
+
         [HttpGet("factorial")]
         public IActionResult Factorial(int n)
         {
-            if (n <= 1)
-                return Ok(1);
+            if (n < 0) return BadRequest("Negative numbers are not allowed.");
+            if (n > FactorialMaxInput) return BadRequest($"Input exceeds maximum limit of {FactorialMaxInput}.");
 
-            return Ok(n * Factorial(n - 1).Value);
+            try
+            {
+                return Ok(CalculateFactorial(n));
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Overflow occurred while calculating the factorial.");
+            }
+        }
+
+        private long CalculateFactorial(int n)
+        {
+            long result = 1;
+            for (int i = 2; i <= n; i++)
+            {
+                result = checked(result * i);
+            }
+            return result;
         }
     }
 }
