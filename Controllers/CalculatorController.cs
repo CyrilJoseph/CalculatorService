@@ -1,9 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CalculatorService.Controllers
 {
@@ -11,15 +8,14 @@ namespace CalculatorService.Controllers
     [ApiController]
     public class CalculatorController : ControllerBase
     {
-        [HttpGet("add")]
-        public IActionResult Add(int num1, int num2)
+        [HttpPost("add")]
+        public IActionResult Add([FromBody] OperationRequest request)
         {
-            if (num1 == 0) return BadRequest("Num1 is required");
-            if (num2 == 0) return BadRequest("Num2 is required");
-            
+            if (request == null || !ModelState.IsValid) return BadRequest("Invalid input");
+
             try
             {
-                return Ok(num1 + num2);
+                return Ok(request.Num1 + request.Num2);
             }
             catch
             {
@@ -27,41 +23,69 @@ namespace CalculatorService.Controllers
             }
         }
 
-        [HttpGet("sub")]
-        public IActionResult Sub(int num1, int num2)
+        [HttpPost("sub")]
+        public IActionResult Sub([FromBody] OperationRequest request)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
-            return Ok(num1 - num2);
+            if (request == null || !ModelState.IsValid) return BadRequest("Invalid input");
+
+            return Ok(request.Num1 - request.Num2);
         }
 
-        [HttpGet("multiply")]
-        public IActionResult Multiply(int num1, int num2)
+        [HttpPost("multiply")]
+        public IActionResult Multiply([FromBody] OperationRequest request)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
-            
-            long result = (long)num1 * (long)num2;
-            return Ok(result);
+            if (request == null || !ModelState.IsValid) return BadRequest("Invalid input");
+
+            try
+            {
+                long result = (long)request.Num1 * (long)request.Num2;
+                return Ok(result);
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Overflow detected");
+            }
         }
 
-        [HttpGet("divide")]
-        public IActionResult Divide(int num1, int num2)
+        [HttpPost("divide")]
+        public IActionResult Divide([FromBody] OperationRequest request)
         {
-            if (num1 == 0) return BadRequest("Num1 is required and cannot be zero");
-            if (num2 == 0) return BadRequest("Num2 is required and cannot be zero");
+            if (request == null || !ModelState.IsValid) return BadRequest("Invalid input");
+            if (request.Num2 == 0) return BadRequest("Division by zero is not allowed");
 
-            return Ok(num1 / num2);
+            return Ok(request.Num1 / request.Num2);
         }
-        
-        [HttpGet("factorial")]
-        public IActionResult Factorial(int n)
-        {
-            if (n <= 1)
-                return Ok(1);
 
-            return Ok(n * Factorial(n - 1).Value);
+        [HttpPost("factorial")]
+        public IActionResult Factorial([FromBody] FactorialRequest request)
+        {
+            if (request == null || !ModelState.IsValid) return BadRequest("Invalid input");
+            if (request.Number < 0) return BadRequest("Negative numbers are not allowed");
+
+            try
+            {
+                long result = 1;
+                for (int i = 1; i <= request.Number; i++)
+                {
+                    result *= i;
+                }
+                return Ok(result);
+            }
+            catch (OverflowException)
+            {
+                return BadRequest("Overflow detected during factorial calculation");
+            }
+        }
+
+        public class OperationRequest
+        {
+            public int Num1 { get; set; }
+            public int Num2 { get; set; }
+        }
+
+        public class FactorialRequest
+        {
+            public int Number { get; set; }
         }
     }
 }
